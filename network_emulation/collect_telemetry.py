@@ -217,7 +217,7 @@ if __name__ == "__main__":
         df = collect_telemetry(
             config_path=config_path,
             volatility=volatility,
-            num_episodes=100,
+            num_episodes=300,
             steps_per_episode=50,
             tasks_per_step=3,
         )
