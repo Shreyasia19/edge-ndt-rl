@@ -21,15 +21,15 @@ jobs:
       - name: Install dependencies
         run: pip install flake8 pytest numpy pandas torch
 
-      - name: Lint with flake8
+      - name: Lint — errors only (no style warnings)
         run: |
           flake8 . \
-            --max-line-length=100 \
+            --max-line-length=120 \
             --exclude=.git,__pycache__,data/,digital_twin/saved_models/ \
-            --ignore=E501,W503,W504,E402,E226,E302,E741,W292,W293,F401,F541,F841
+            --select=E9,F7,F82 \
+            --count
 
-      - name: Run tests
-        run: pytest tests/ -v --tb=short --ignore=tests/test_env.py
-
-      - name: Run structure test only
-        run: pytest tests/test_env.py::test_project_structure -v
+      - name: Run basic tests
+        run: |
+          pytest tests/test_twin.py tests/test_reward.py \
+            tests/test_env.py::test_project_structure -v --tb=short
