@@ -133,6 +133,7 @@ def generate_network_config(num_nodes=8):
     Matches base paper: 8 nodes, Gaussian compute capacity,
     Gaussian link bandwidth (Section V-A Network Model).
     """
+    np.random.seed(99)  # fixed seed for reproducible topology
     nodes = []
     for i in range(num_nodes):
         # Compute capacity: Gaussian mean=40 Mcps, std=80% (base paper exact)

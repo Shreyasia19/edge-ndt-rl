@@ -3,213 +3,213 @@
   "nodes": [
     {
       "node_id": 0,
-      "compute_capacity_mcps": 55.89,
-      "memory_gb": 3.72
+      "compute_capacity_mcps": 35.44,
+      "memory_gb": 8.11
     },
     {
       "node_id": 1,
-      "compute_capacity_mcps": 60.73,
-      "memory_gb": 7.05
+      "compute_capacity_mcps": 49.06,
+      "memory_gb": 6.66
     },
     {
       "node_id": 2,
-      "compute_capacity_mcps": 32.51,
-      "memory_gb": 3.53
+      "compute_capacity_mcps": 35.05,
+      "memory_gb": 3.86
     },
     {
       "node_id": 3,
-      "compute_capacity_mcps": 90.53,
-      "memory_gb": 5.53
+      "compute_capacity_mcps": 64.17,
+      "memory_gb": 5.65
     },
     {
       "node_id": 4,
-      "compute_capacity_mcps": 24.98,
-      "memory_gb": 5.09
-    },
-    {
-      "node_id": 5,
-      "compute_capacity_mcps": 25.17,
-      "memory_gb": 3.07
-    },
-    {
-      "node_id": 6,
-      "compute_capacity_mcps": 47.74,
+      "compute_capacity_mcps": 36.38,
       "memory_gb": 0.5
     },
     {
+      "node_id": 5,
+      "compute_capacity_mcps": 34.65,
+      "memory_gb": 5.37
+    },
+    {
+      "node_id": 6,
+      "compute_capacity_mcps": 40.75,
+      "memory_gb": 4.91
+    },
+    {
       "node_id": 7,
-      "compute_capacity_mcps": 5,
-      "memory_gb": 2.88
+      "compute_capacity_mcps": 48.66,
+      "memory_gb": 1.13
     }
   ],
   "links": [
     {
       "source": 0,
       "target": 1,
-      "bandwidth_mbps": 1.9,
-      "latency_ms": 5.79
+      "bandwidth_mbps": 17.06,
+      "latency_ms": 3.55
     },
     {
       "source": 0,
       "target": 2,
-      "bandwidth_mbps": 2.74,
-      "latency_ms": 1.47
+      "bandwidth_mbps": 5.99,
+      "latency_ms": 6.48
     },
     {
       "source": 0,
       "target": 3,
-      "bandwidth_mbps": 21.73,
-      "latency_ms": 4.44
+      "bandwidth_mbps": 4.15,
+      "latency_ms": 5.65
     },
     {
       "source": 0,
       "target": 4,
-      "bandwidth_mbps": 10.54,
-      "latency_ms": 1.44
+      "bandwidth_mbps": 3.15,
+      "latency_ms": 4.53
     },
     {
       "source": 0,
       "target": 5,
-      "bandwidth_mbps": 5.64,
-      "latency_ms": 5.28
+      "bandwidth_mbps": 7.01,
+      "latency_ms": 3.85
     },
     {
       "source": 0,
       "target": 6,
-      "bandwidth_mbps": 0.79,
-      "latency_ms": 5.94
+      "bandwidth_mbps": 3.47,
+      "latency_ms": 4.89
     },
     {
       "source": 0,
       "target": 7,
-      "bandwidth_mbps": 5.19,
-      "latency_ms": 4.27
+      "bandwidth_mbps": 10.97,
+      "latency_ms": 7.31
     },
     {
       "source": 1,
       "target": 2,
-      "bandwidth_mbps": 5.19,
-      "latency_ms": 9.63
+      "bandwidth_mbps": 5.41,
+      "latency_ms": 5.13
     },
     {
       "source": 1,
       "target": 3,
-      "bandwidth_mbps": 9.89,
-      "latency_ms": 2.36
+      "bandwidth_mbps": 27.66,
+      "latency_ms": 5.98
     },
     {
       "source": 1,
       "target": 4,
-      "bandwidth_mbps": 16.58,
-      "latency_ms": 1.95
+      "bandwidth_mbps": 13.86,
+      "latency_ms": 6.08
     },
     {
       "source": 1,
       "target": 5,
-      "bandwidth_mbps": 11.67,
-      "latency_ms": 0.1
+      "bandwidth_mbps": 0.5,
+      "latency_ms": 4.39
     },
     {
       "source": 1,
       "target": 6,
       "bandwidth_mbps": 0.5,
-      "latency_ms": 5.49
+      "latency_ms": 7.15
     },
     {
       "source": 1,
       "target": 7,
-      "bandwidth_mbps": 15.91,
-      "latency_ms": 5.43
+      "bandwidth_mbps": 23.6,
+      "latency_ms": 3.68
     },
     {
       "source": 2,
       "target": 3,
-      "bandwidth_mbps": 9.07,
-      "latency_ms": 4.25
+      "bandwidth_mbps": 24.11,
+      "latency_ms": 2.2
     },
     {
       "source": 2,
       "target": 4,
       "bandwidth_mbps": 0.5,
-      "latency_ms": 3.2
+      "latency_ms": 6.38
     },
     {
       "source": 2,
       "target": 5,
-      "bandwidth_mbps": 6.31,
-      "latency_ms": 7.64
+      "bandwidth_mbps": 3.47,
+      "latency_ms": 3.76
     },
     {
       "source": 2,
       "target": 6,
-      "bandwidth_mbps": 12.75,
-      "latency_ms": 0.59
+      "bandwidth_mbps": 18.69,
+      "latency_ms": 2.56
     },
     {
       "source": 2,
       "target": 7,
-      "bandwidth_mbps": 12.59,
-      "latency_ms": 4.04
+      "bandwidth_mbps": 7.74,
+      "latency_ms": 4.71
     },
     {
       "source": 3,
       "target": 4,
-      "bandwidth_mbps": 4.58,
-      "latency_ms": 6.53
+      "bandwidth_mbps": 13.03,
+      "latency_ms": 6.83
     },
     {
       "source": 3,
       "target": 5,
-      "bandwidth_mbps": 18.25,
-      "latency_ms": 7.33
+      "bandwidth_mbps": 9.17,
+      "latency_ms": 2.0
     },
     {
       "source": 3,
       "target": 6,
-      "bandwidth_mbps": 3.29,
-      "latency_ms": 4.23
+      "bandwidth_mbps": 18.08,
+      "latency_ms": 12.19
     },
     {
       "source": 3,
       "target": 7,
-      "bandwidth_mbps": 12.65,
-      "latency_ms": 7.44
+      "bandwidth_mbps": 16.56,
+      "latency_ms": 6.4
     },
     {
       "source": 4,
       "target": 5,
-      "bandwidth_mbps": 6.17,
-      "latency_ms": 4.54
+      "bandwidth_mbps": 6.99,
+      "latency_ms": 4.37
     },
     {
       "source": 4,
       "target": 6,
-      "bandwidth_mbps": 1.15,
-      "latency_ms": 2.01
+      "bandwidth_mbps": 0.5,
+      "latency_ms": 6.54
     },
     {
       "source": 4,
       "target": 7,
-      "bandwidth_mbps": 16.5,
-      "latency_ms": 8.39
+      "bandwidth_mbps": 8.91,
+      "latency_ms": 8.22
     },
     {
       "source": 5,
       "target": 6,
-      "bandwidth_mbps": 9.42,
-      "latency_ms": 7.51
+      "bandwidth_mbps": 1.7,
+      "latency_ms": 8.41
     },
     {
       "source": 5,
       "target": 7,
-      "bandwidth_mbps": 12.89,
-      "latency_ms": 3.39
+      "bandwidth_mbps": 7.52,
+      "latency_ms": 3.47
     },
     {
       "source": 6,
       "target": 7,
-      "bandwidth_mbps": 12.89,
-      "latency_ms": 8.85
+      "bandwidth_mbps": 6.14,
+      "latency_ms": 3.48
     }
   ],
   "description": "Base config: 8 nodes, matching Chen et al. MASS 2023"
