@@ -30,7 +30,7 @@ Offloading in Edge Computing." IEEE MASS 2023, pp. 28-36.
 
 ## Quick Setup
 ```bash
-git clone https://github.com/YOUR_USERNAME/edge-ndt-rl.git
+git clone https://github.com/Shreyasia19/edge-ndt-rl.git
 cd edge-ndt-rl
 pip install -r requirements.txt
 ```
