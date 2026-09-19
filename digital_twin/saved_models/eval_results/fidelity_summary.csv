@@ -1,0 +1,4 @@
+volatility,rmse,mae,r2
+normal,0.107726,0.053216,0.3101
+high_churn,0.180267,0.106279,0.2115
+low_bandwidth,0.115084,0.057729,0.3095

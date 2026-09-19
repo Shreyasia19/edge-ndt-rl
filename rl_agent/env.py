@@ -96,10 +96,10 @@ class EdgeComputingEnv(gym.Env):
         self.task_feat_dim = 4
         obs_dim = self.state_dim + self.task_feat_dim
         self.observation_space = spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=(obs_dim,),
-            dtype=np.float32
+        low=0.0,
+        high=np.inf,
+        shape=(obs_dim,),
+        dtype=np.float32
         )
 
         # ── Load Digital Twin ─────────────────────────────────
@@ -221,7 +221,7 @@ class EdgeComputingEnv(gym.Env):
                 )
             next_state = next_state_pred.numpy()
             # Clip to valid range
-            next_state = np.clip(next_state, 0.0, 1.0)
+            next_state = np.clip(next_state, 0.0, 10.0)
         else:
             # Use real simulator state (for evaluation)
             next_state = self.real_sim.get_state_vector()
