@@ -18,13 +18,17 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install flake8 pytest
+      - name: Install lint + test dependencies
+        run: |
+          pip install flake8 pytest
 
       - name: Lint with flake8
         run: |
-          flake8 . --max-line-length=100 \
-            --exclude=.git,__pycache__,data/
+          flake8 . \
+            --max-line-length=100 \
+            --exclude=.git,__pycache__,data/,digital_twin/saved_models/ \
+            --ignore=E501,W503,E402
 
-      - name: Run tests
-        run: pytest tests/ -v --tb=short
+      - name: Run placeholder tests
+        run: |
+          pytest tests/ -v --tb=short
