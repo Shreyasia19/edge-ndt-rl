@@ -1,0 +1,29 @@
+# Core ML
+torch==2.2.0
+numpy==1.26.4
+pandas==2.2.0
+scikit-learn==1.4.0
+
+# GNN for digital twin
+torch-geometric==2.5.0
+
+# RL framework
+gymnasium==0.29.1
+stable-baselines3==2.2.1
+
+# Optimization baseline
+ortools==9.8.3296
+
+# Experiment tracking
+wandb==0.16.3
+
+# Visualization + dashboard
+matplotlib==3.8.3
+seaborn==0.13.2
+streamlit==1.31.1
+
+# Utilities
+tqdm==4.66.2
+pyyaml==6.0.1
+pytest==8.0.0
+flake8==7.0.0
