@@ -1,0 +1,26 @@
+{
+  "num_nodes": 8,
+  "tasks_per_episode": 20,
+  "volatility": "normal",
+  "algorithm": "PPO",
+  "total_timesteps": 200000,
+  "n_envs": 4,
+  "ppo": {
+    "learning_rate": 0.0003,
+    "n_steps": 512,
+    "batch_size": 64,
+    "n_epochs": 10,
+    "gamma": 0.9,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "policy": "MlpPolicy"
+  },
+  "lambda_sla": 0.3,
+  "mu_energy": 0.1,
+  "save_dir": "rl_agent/policies",
+  "log_dir": "rl_agent/logs",
+  "results_dir": "rl_agent/results"
+}

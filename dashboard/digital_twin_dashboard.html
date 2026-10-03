@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>edge-ndt-rl — Digital Twin Dashboard</title>
+<style>
+:root{
+  --bg:#0a0f1a; --panel:#101827; --panel2:#0d1420; --line:#1e2a3f;
+  --text:#e7ecf3; --muted:#7c8aa3; --real:#4fd1c5; --realDim:#2b6b64;
+  --twin:#f0a860; --twinDim:#8a5f30; --ok:#57c46b; --warn:#f0a860; --bad:#e2574c; --off:#3a4363;
+  --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f5f8; --panel:#ffffff; --panel2:#eef1f5; --line:#dde3ec;
+    --text:#131a26; --muted:#5b6779; --realDim:#bfeae6; --twinDim:#f6dcbb;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 48px}
+header{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+h1{font-size:1.3rem;margin:0 0 4px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:.85rem;margin:0;max-width:60ch;line-height:1.5}
+
+.tabbar{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;width:fit-content}
+.tabbar button{border:none;background:transparent;color:var(--muted);font-size:.82rem;padding:8px 16px;border-radius:7px;cursor:pointer;font-family:inherit;font-weight:600;}
+.tabbar button.active{background:var(--line);color:var(--text)}
+.tabpanel{display:none}
+.tabpanel.active{display:block}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.modebtns{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.modebtns button{border:none;background:transparent;color:var(--muted);font-size:.78rem;padding:7px 11px;border-radius:7px;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;}
+.modebtns button.active{background:var(--line);color:var(--text)}
+.iconbtn{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.speed{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.75rem}
+.speed input{accent-color:var(--real)}
+
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative}
+@media (max-width:680px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.ptitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ptitle .name{font-size:.82rem;font-weight:650;display:flex;gap:7px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.real{background:var(--real)} .dot.twin{background:var(--twin)}
+.ptitle .stat{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--panel2)}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:.72rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.sw.ok{background:var(--ok)} .sw.bad{background:var(--bad)} .sw.off{background:var(--muted);opacity:.5}
+
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+@media (max-width:760px){.metrics{grid-template-columns:1fr 1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card .k{font-size:11px;color:var(--muted);margin-bottom:4px}
+.card .v{font-family:var(--mono);font-size:19px;font-weight:600}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+.badge.LOW{background:rgba(87,196,107,.18);color:var(--ok)} .badge.MEDIUM{background:rgba(240,168,96,.18);color:var(--warn)} .badge.HIGH{background:rgba(226,87,76,.18);color:var(--bad)}
+
+.sparkbox{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.sparkbox .lbl{font-size:.68rem;color:var(--muted);margin-bottom:6px}
+.sparkbox canvas{height:56px}
+
+.note{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:14px 16px;margin-top:18px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.note b{color:var(--text)}
+.note code{font-family:var(--mono);background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:11.5px}
+
+.banner{display:flex;gap:10px;align-items:flex-start;background:rgba(226,87,76,.10);border:1px solid rgba(226,87,76,.35);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:.8rem;line-height:1.5;color:var(--text)}
+.banner .ic{font-size:1rem;flex-shrink:0;line-height:1.4}
+.banner b{color:var(--bad)}
+.synthTag{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:700;letter-spacing:.03em;padding:2px 7px;border-radius:20px;background:rgba(226,87,76,.15);color:var(--bad);font-family:var(--mono);vertical-align:middle}
+.cardHead{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.stdNote{font-size:9.5px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.axisRow{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted);font-family:var(--mono);margin-top:4px}
+.chartLegend{display:flex;gap:12px;font-size:9.5px;color:var(--muted);margin-top:6px}
+.chartLegend span{display:inline-flex;align-items:center;gap:4px}
+.chartLegend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+
+/* python tab */
+.pyintro{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.pyintro p{margin:0;font-size:.82rem;color:var(--muted);line-height:1.5;max-width:56ch}
+.fileRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.filebtn{border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:.78rem;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit}
+.filebtn:hover{border-color:var(--real)}
+#fileInput{display:none}
+.srcTag{font-size:.7rem;font-family:var(--mono);padding:3px 9px;border-radius:20px;background:var(--panel2);color:var(--muted)}
+.srcTag.live{color:var(--real);}
+
+table.metricsTable{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:.8rem;margin-bottom:18px}
+table.metricsTable th, table.metricsTable td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+table.metricsTable th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:none}
+table.metricsTable tr:last-child td{border-bottom:none}
+table.metricsTable td.mono{font-family:var(--mono)}
+
+.chartGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.chartGrid{grid-template-columns:1fr}}
+.chartCard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.chartCard .lbl{font-size:.72rem;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.chartCard canvas{height:120px}
+
+footer{margin-top:22px;color:var(--muted);font-size:.72rem;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>edge-ndt-rl — digital twin dashboard</h1>
+      <p class="sub">Real edge network vs. the digital twin's belief of it, side by side — plus the same fidelity metrics computed offline by <code style="font-family:var(--mono)">edge_ndt_digital_twin_sim.py</code>. Built for mentor walkthroughs of the sim-to-real gap study.</p>
+    </div>
+  </header>
+
+  <div class="banner">
+    <span class="ic">⚠</span>
+    <span><b>All numbers on this page are synthetic.</b> Phases 2 &amp; 5 of the project (trained GNN twin, gap analysis) aren't done yet, so there is no real <code style="font-family:var(--mono)">fidelity_summary.csv</code> to read from. Every metric here is a hand-tuned simulation of the <i>expected</i> error behaviour, meant to preview the evaluation pipeline and UI — not to represent measured model performance.</span>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <button data-tab="live" class="active">Live simulation</button>
+    <button data-tab="python">Python-verified metrics</button>
+  </div>
+
+  <!-- ============ LIVE TAB ============ -->
+  <div class="tabpanel active" id="tab-live">
+    <div class="controls">
+      <div class="modebtns" id="modebtns">
+        <button data-mode="normal" class="active">Normal</button>
+        <button data-mode="high_churn">High churn</button>
+        <button data-mode="low_bandwidth">Low bandwidth</button>
+      </div>
+      <button class="iconbtn" id="playBtn" title="Pause">⏸</button>
+      <button class="iconbtn" id="resetBtn" title="Reset">↺</button>
+      <div class="speed"><span>speed</span><input type="range" id="speed" min="0.5" max="3" step="0.5" value="1"></div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="ptitle"><span class="name"><span class="dot real"></span>Real network</span><span class="stat" id="realStat">—</span></div>
+        <canvas id="cvReal" width="320" height="320"></canvas>
+      </div>
+      <div class="panel">
+        <div class="ptitle"><span class="name"><span class="dot twin"></span>Digital twin (belief)</span><span class="stat" id="twinStat">—</span></div>
+        <canvas id="cvTwin" width="320" height="320"></canvas>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><span class="sw ok"></span>met SLA / low load</span>
+      <span><span class="sw bad"></span>violated SLA / overloaded</span>
+      <span><span class="sw off"></span>node offline</span>
+    </div>
+
+    <div class="cardHead" style="margin-top:16px;margin-bottom:-4px">
+      <span style="font-size:.72rem;color:var(--muted)">Live metrics (this browser session — resets on reload)</span>
+      <span class="synthTag">SYNTHETIC · illustrative</span>
+    </div>
+    <div class="metrics">
+      <div class="card"><div class="k">Load RMSE (rolling)</div><div class="v" id="mRmse">–</div></div>
+      <div class="card"><div class="k">Load R² (rolling)</div><div class="v" id="mR2">–</div></div>
+      <div class="card"><div class="k">Fidelity risk</div><div class="v"><span class="badge" id="mBadge">–</span></div></div>
+      <div class="card"><div class="k">Tasks completed</div><div class="v" id="mTasks">0</div></div>
+      <div class="card"><div class="k">Avg completion — real</div><div class="v" id="mReal">— ms</div></div>
+      <div class="card"><div class="k">Avg completion — twin</div><div class="v" id="mTwin">— ms</div></div>
+      <div class="card"><div class="k">Sim-to-real ACT gap</div><div class="v" id="gapVal">0.0%</div></div>
+      <div class="card"><div class="k">SLA violations (real)</div><div class="v" id="mSla">—%</div></div>
+    </div>
+
+    <div class="sparkbox">
+      <div class="lbl">sim-to-real ACT gap over time</div>
+      <canvas id="spark" width="1000" height="110"></canvas>
+    </div>
+
+    <div class="note">
+      <b>How this maps to the repo:</b> the 8-node star topology mirrors <code>network_emulation/topology.py</code>. Node capacity/bandwidth are drawn from the same Gaussian distributions used for the project's training data (Alibaba Cluster Trace v2018‑derived). This tab is a <b>live, illustrative re-simulation</b> running entirely in JS — it is not a forward pass of <code>digital_twin/model.py</code>'s trained GNN. For actual measured fidelity numbers, use the "Python-verified metrics" tab, which reads the output of <code>edge_ndt_digital_twin_sim.py</code>.
+    </div>
+  </div>
+
+  <!-- ============ PYTHON TAB ============ -->
+  <div class="tabpanel" id="tab-python">
+    <div class="pyintro">
+      <p><b style="color:var(--text)">Run <code style="font-family:var(--mono)">python edge_ndt_digital_twin_sim.py</code></b> to regenerate <code style="font-family:var(--mono)">outputs/sim_export.json</code> with a fresh simulation, then load it here. Until then this shows a bundled sample run so the tab isn't empty.</p>
+      <div class="fileRow">
+        <span class="synthTag">SYNTHETIC</span>
+        <span class="srcTag" id="srcTag">bundled sample run</span>
+        <button class="filebtn" id="loadBtn">Load sim_export.json…</button>
+        <input type="file" id="fileInput" accept=".json">
+      </div>
+    </div>
+
+    <table class="metricsTable">
+      <thead>
+        <tr><th>Mode</th><th>RMSE (load)<br><span style="font-weight:400">mean ± std</span></th><th>R²<br><span style="font-weight:400">mean ± std</span></th><th>Risk</th><th>ACT gap %<br><span style="font-weight:400">mean ± std</span></th><th>SLA viol. % (real)</th><th>ACT real</th><th>ACT twin</th><th>Tasks done</th></tr>
+      </thead>
+      <tbody id="metricsTbody"></tbody>
+    </table>
+    <p style="font-size:.7rem;color:var(--muted);margin:-10px 0 18px">Mean ± 1 std across <span id="nRunsLabel">n</span> independently-seeded runs per mode (set by <code style="font-family:var(--mono)">N_RUNS</code> in the script) — a single seed isn't reported as "the" result.</p>
+
+    <div class="modebtns" id="pyModebtns" style="margin-bottom:14px;width:fit-content">
+      <button data-mode="normal" class="active">Normal</button>
+      <button data-mode="high_churn">High churn</button>
+      <button data-mode="low_bandwidth">Low bandwidth</button>
+    </div>
+
+    <div class="chartGrid">
+      <div class="chartCard">
+        <div class="lbl"><span>Real vs. twin-predicted load (mean across nodes)</span><span>representative run</span></div>
+        <canvas id="cvLoad" width="600" height="160"></canvas>
+        <div class="axisRow"><span id="axLoadMin">–</span><span id="axLoadMax">–</span></div>
+        <div class="chartLegend"><span><i style="background:#4fd1c5"></i>real</span><span><i style="background:#f0a860"></i>twin prediction</span></div>
+      </div>
+      <div class="chartCard">
+        <div class="lbl"><span>Rolling load RMSE (window=40 ticks)</span><span>representative run</span></div>
+        <canvas id="cvRmse" width="600" height="160"></canvas>
+        <div class="axisRow"><span id="axRmseMin">–</span><span id="axRmseMax">–</span></div>
+      </div>
+      <div class="chartCard">
+        <div class="lbl"><span>Rolling load R² (window=40 ticks)</span><span>representative run</span></div>
+        <canvas id="cvR2" width="600" height="160"></canvas>
+        <div class="axisRow"><span id="axR2Min">–</span><span id="axR2Max">–</span></div>
+      </div>
+      <div class="chartCard">
+        <div class="lbl"><span>Rolling sim-to-real ACT gap %</span><span>representative run</span></div>
+        <canvas id="cvGap" width="600" height="160"></canvas>
+        <div class="axisRow"><span id="axGapMin">–</span><span id="axGapMax">–</span></div>
+      </div>
+    </div>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:10px">x-axis: simulated seconds (0–<span id="simSecondsLabel">–</span>s). Line charts show one representative seeded run; the table above uses all <span id="nRunsLabel2">n</span> runs.</p>
+
+    <div class="note">
+      <b>What's real here, and what isn't:</b> the RMSE/R²/ACT/SLA numbers are genuinely computed by <code>numpy</code> and a discrete-event queueing simulation in <code>edge_ndt_digital_twin_sim.py</code>, averaged over multiple independently-seeded runs (not hand-tuned JS, not a single lucky seed). What's <b>not</b> real is the underlying model: the twin's prediction error is a hand-tuned regression-to-mean + noise process, not a forward pass of <code>digital_twin/model.py</code>'s trained GNN, because Phase 2/5 of the project checklist aren't complete yet. Swap in <code>digital_twin/saved_models/eval_results/fidelity_summary.csv</code> once those land — the loader here accepts any JSON matching the same schema.
+    </div>
+  </div>
+
+  <footer>edge-ndt-rl · digital twin dashboard · generated for mentor review</footer>
+</div>
+
+<script>
+/* ============================================================
+   Shared mode parameters — mirrors MODE_PARAMS in
+   edge_ndt_digital_twin_sim.py so the live tab and the python
+   tab are describing the same experiment.
+   ============================================================ */
+const MODE_PARAMS = {
+  normal:        {failReal:0.00, failTwin:0.00, bwReal:1.00, bwTwin:1.00, track:0.78, noise:0.045, meanLoad:0.32, ref:"see python tab"},
+  high_churn:    {failReal:0.16, failTwin:0.05, bwReal:1.00, bwTwin:1.00, track:0.62, noise:0.080, meanLoad:0.34, ref:"see python tab"},
+  low_bandwidth: {failReal:0.00, failTwin:0.00, bwReal:0.32, bwTwin:0.48, track:0.72, noise:0.050, meanLoad:0.33, ref:"see python tab"}
+};
+const MODE_LABEL = {normal:"Normal", high_churn:"High churn", low_bandwidth:"Low bandwidth"};
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+document.getElementById('tabbar').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.toggle('active',x===b));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+});
+
+/* ============================================================
+   LIVE TAB — queueing sim (ACT/SLA/gap) + AR(1) load predictor
+   (RMSE/R²), same structure as the python script.
+   ============================================================ */
+(function(){
+"use strict";
+const N=8;
+let mode="normal";
+let paused=false, speed=1, simTime=0;
+
+function gauss(mean,stdFrac){
+  let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  const z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  return Math.max(mean*0.15, mean + z*mean*stdFrac);
+}
+function gaussAbs(std){
+  let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)*std;
+}
+
+let baseCap=[], baseBw=[], loadBase=[];
+function regen(){
+  baseCap=[]; baseBw=[]; loadBase=[];
+  for(let i=0;i<N;i++){ baseCap.push(gauss(40,0.8)); baseBw.push(gauss(10,0.8)); loadBase.push(Math.max(0.05,0.30+gaussAbs(0.12))); }
+}
+regen();
+
+class NetSim{
+  constructor(canvas,isTwin){
+    this.cv=canvas; this.ctx=canvas.getContext('2d'); this.isTwin=isTwin;
+    this.nodes=[]; this.flights=[]; this.completions=[]; this.violCount=0; this.doneCount=0;
+    this.spawnAcc=0;
+    const cx=canvas.width/2, cy=canvas.height/2, R=canvas.width*0.36;
+    for(let i=0;i<N;i++){
+      const a=(i/N)*Math.PI*2 - Math.PI/2;
+      this.nodes.push({id:i,x:cx+Math.cos(a)*R,y:cy+Math.sin(a)*R,cap:baseCap[i],bw:baseBw[i],
+        online:true,glow:0,tasks:[],failClock:Math.random()*2});
+    }
+    this.cx=cx; this.cy=cy;
+  }
+  reset(){
+    this.nodes.forEach((n,i)=>{n.cap=baseCap[i];n.bw=baseBw[i];n.online=true;n.tasks=[];n.glow=0;n.failClock=Math.random()*2;});
+    this.flights=[]; this.completions=[]; this.violCount=0; this.doneCount=0;
+  }
+  tick(dt){
+    const cfg=MODE_PARAMS[mode];
+    const failP = this.isTwin?cfg.failTwin:cfg.failReal;
+    const bwF = this.isTwin?cfg.bwTwin:cfg.bwReal;
+    this.nodes.forEach(n=>{
+      n.failClock-=dt;
+      if(n.failClock<=0){
+        n.failClock=1.2+Math.random()*1.3;
+        if(failP>0){
+          if(n.online && Math.random()<failP) n.online=false;
+          else if(!n.online && Math.random()<0.6) n.online=true;
+        } else { n.online=true; }
+      }
+      n.glow=Math.max(0,n.glow-dt*1.6);
+    });
+    this.spawnAcc += dt*2.2;
+    while(this.spawnAcc>=1){ this.spawnAcc-=1; this.spawnTask(); }
+    this.flights=this.flights.filter(f=>{
+      f.t+=dt/0.45;
+      if(f.t>=1){ const n=this.nodes[f.node]; n.tasks.push(f.task); n.glow=1; return false; }
+      return true;
+    });
+    this.nodes.forEach(n=>{
+      if(!n.online || n.tasks.length===0) return;
+      const rate=(n.cap/40)/n.tasks.length;
+      n.tasks=n.tasks.filter(t=>{
+        t.remaining -= dt*1000*rate;
+        if(t.remaining<=0){
+          const ct=simTime-t.created;
+          const viol=ct>t.deadline;
+          this.completions.push({ct,viol});
+          if(this.completions.length>40)this.completions.shift();
+          this.doneCount++; if(viol)this.violCount++;
+          n.glow=1;
+          return false;
+        }
+        return true;
+      });
+    });
+    this._bwFactor=bwF;
+  }
+  spawnTask(){
+    const demand=gauss(500,0.6);
+    const dataSize=gauss(500,0.8);
+    const online=this.nodes.filter(n=>n.online);
+    let target;
+    if(online.length===0){ target=this.nodes[Math.floor(Math.random()*N)]; }
+    else { target=online.reduce((a,b)=> (a.tasks.length/((a.cap/40)||0.1)) <= (b.tasks.length/((b.cap/40)||0.1)) ? a:b); }
+    const bwEff = target.bw*this._bwFactorSafe();
+    const workMs = (demand/(target.cap||10))*18 + (dataSize/(bwEff||3))*10;
+    const task={remaining:workMs, created:simTime, deadline:workMs*1.55+40};
+    this.flights.push({node:target.id,t:0,fromx:this.cx,fromy:this.cy,tox:target.x,toy:target.y,task});
+  }
+  _bwFactorSafe(){ return this._bwFactor===undefined? MODE_PARAMS[mode][this.isTwin?'bwTwin':'bwReal'] : this._bwFactor; }
+  avgCompletion(){ if(!this.completions.length)return null; return this.completions.reduce((s,c)=>s+c.ct,0)/this.completions.length; }
+  violPct(){ return this.doneCount? (this.violCount/this.doneCount*100):0; }
+  draw(){
+    const ctx=this.ctx, cv=this.cv;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--line');
+    ctx.lineWidth=1;
+    this.nodes.forEach(n=>{ ctx.beginPath(); ctx.moveTo(this.cx,this.cy); ctx.lineTo(n.x,n.y); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(this.cx,this.cy,7,0,7); ctx.fillStyle=this.isTwin?'#f0a860':'#4fd1c5'; ctx.globalAlpha=.9; ctx.fill(); ctx.globalAlpha=1;
+    this.flights.forEach(f=>{
+      const x=f.fromx+(f.tox-f.fromx)*f.t, y=f.fromy+(f.toy-f.fromy)*f.t;
+      ctx.beginPath(); ctx.arc(x,y,3.4,0,7);
+      ctx.fillStyle=this.isTwin?'#f0a860':'#4fd1c5'; ctx.fill();
+    });
+    this.nodes.forEach(n=>{
+      const load=Math.min(1,n.tasks.length/4);
+      const r=15+load*7;
+      let col;
+      if(!n.online) col='#5b6779';
+      else col = load<0.5 ? lerpCol('#57c46b','#f0a860',load*2) : lerpCol('#f0a860','#e2574c',(load-0.5)*2);
+      if(n.glow>0){
+        ctx.beginPath(); ctx.arc(n.x,n.y,r+n.glow*10,0,7);
+        ctx.fillStyle=col; ctx.globalAlpha=n.glow*0.25; ctx.fill(); ctx.globalAlpha=1;
+      }
+      ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7);
+      ctx.fillStyle=n.online?col:'#2a3242'; ctx.fill();
+      ctx.lineWidth=1.4; ctx.strokeStyle=n.online?'rgba(0,0,0,.25)':'#5b6779'; ctx.stroke();
+      ctx.fillStyle= n.online? '#0a0f1a':'#7c8aa3';
+      ctx.font='10px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(n.id, n.x, n.y);
+    });
+  }
+}
+function lerpCol(a,b,t){
+  const pa=hex(a),pb=hex(b);
+  const r=Math.round(pa[0]+(pb[0]-pa[0])*t),g=Math.round(pa[1]+(pb[1]-pa[1])*t),bl=Math.round(pa[2]+(pb[2]-pa[2])*t);
+  return `rgb(${r},${g},${bl})`;
+}
+function hex(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+
+const real=new NetSim(document.getElementById('cvReal'),false);
+const twin=new NetSim(document.getElementById('cvTwin'),true);
+
+// AR(1) load-fidelity predictor, mirrors run_mode() in the python script
+let loadState=[], prevReal=null;
+let realLoadHist=[], predLoadHist=[];
+function resetLoadModel(){
+  loadState=loadBase.slice();
+  prevReal=null; realLoadHist=[]; predLoadHist=[];
+}
+resetLoadModel();
+function stepLoadModel(){
+  const cfg=MODE_PARAMS[mode];
+  for(let i=0;i<N;i++){
+    loadState[i]+=(loadBase[i]-loadState[i])*0.15+gaussAbs(0.035);
+    loadState[i]=Math.min(0.98,Math.max(0.02,loadState[i]));
+  }
+  const cur=loadState.slice();
+  const prev=prevReal||cur;
+  const pred=prev.map(v=>Math.min(1,Math.max(0, cfg.track*v + (1-cfg.track)*cfg.meanLoad + gaussAbs(cfg.noise))));
+  prevReal=cur;
+  realLoadHist.push(cur); predLoadHist.push(pred);
+  if(realLoadHist.length>200){realLoadHist.shift(); predLoadHist.shift();}
+}
+function rollingFidelity(){
+  const w=realLoadHist.slice(-40), pw=predLoadHist.slice(-40);
+  if(w.length<5) return {rmse:0,r2:0};
+  let flatR=[], flatP=[];
+  w.forEach(row=>flatR.push(...row)); pw.forEach(row=>flatP.push(...row));
+  let se=0; for(let i=0;i<flatR.length;i++) se+=(flatR[i]-flatP[i])**2;
+  const rmse=Math.sqrt(se/flatR.length);
+  const mean=flatR.reduce((a,b)=>a+b,0)/flatR.length;
+  let ssr=0,sst=0; for(let i=0;i<flatR.length;i++){ssr+=(flatR[i]-flatP[i])**2; sst+=(flatR[i]-mean)**2;}
+  const r2=1-ssr/(sst+1e-6);
+  return {rmse,r2};
+}
+function riskFor(r2){ return r2>0.7?'LOW':r2>0.4?'MEDIUM':'HIGH'; }
+
+const gapHist=[];
+function updateUI(){
+  const ar=real.avgCompletion(), at=twin.avgCompletion();
+  document.getElementById('mReal').textContent = ar? Math.round(ar)+' ms':'— ms';
+  document.getElementById('mTwin').textContent = at? Math.round(at)+' ms':'— ms';
+  document.getElementById('mSla').textContent = real.doneCount? real.violPct().toFixed(0)+'%':'—%';
+  document.getElementById('mTasks').textContent = real.doneCount;
+  document.getElementById('realStat').textContent = real.nodes.filter(n=>n.online).length+'/'+N+' online';
+  document.getElementById('twinStat').textContent = twin.nodes.filter(n=>n.online).length+'/'+N+' online (belief)';
+  let gap=0;
+  if(ar && at) gap=(ar-at)/at*100;
+  const el=document.getElementById('gapVal');
+  el.textContent=(gap>=0?'+':'')+gap.toFixed(1)+'%';
+  el.style.color = gap>=0? 'var(--bad)':'var(--ok)';
+  if(ar&&at){ gapHist.push(gap); if(gapHist.length>60)gapHist.shift(); drawSpark(); }
+
+  const fid=rollingFidelity();
+  document.getElementById('mRmse').textContent=fid.rmse.toFixed(3);
+  document.getElementById('mR2').textContent=fid.r2.toFixed(2);
+  const risk=riskFor(fid.r2);
+  const b=document.getElementById('mBadge'); b.textContent=risk; b.className='badge '+risk;
+}
+function drawSpark(){
+  const cv=document.getElementById('spark'), ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(gapHist.length<2)return;
+  const max=Math.max(20,...gapHist.map(Math.abs));
+  const midY=cv.height/2;
+  ctx.strokeStyle='#7c8aa3'; ctx.globalAlpha=.4; ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(cv.width,midY); ctx.stroke(); ctx.globalAlpha=1;
+  ctx.beginPath();
+  gapHist.forEach((g,i)=>{
+    const x=i/(gapHist.length-1)*cv.width;
+    const y=midY - (g/max)*(cv.height*0.42);
+    if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle='#f0a860'; ctx.lineWidth=2; ctx.stroke();
+}
+
+document.getElementById('modebtns').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  mode=b.dataset.mode;
+  [...document.querySelectorAll('#modebtns button')].forEach(x=>x.classList.toggle('active',x===b));
+  regen(); real.reset(); twin.reset(); resetLoadModel(); gapHist.length=0;
+});
+document.getElementById('playBtn').addEventListener('click',e=>{
+  paused=!paused; e.target.textContent=paused?'▶':'⏸';
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  regen(); real.reset(); twin.reset(); resetLoadModel(); gapHist.length=0; simTime=0;
+});
+document.getElementById('speed').addEventListener('input',e=>{ speed=parseFloat(e.target.value); });
+
+let last=performance.now(), acc=0, tickAcc=0;
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000); last=now;
+  if(!paused){
+    simTime+=dt*1000*speed;
+    real.tick(dt*speed); twin.tick(dt*speed);
+    acc+=dt; tickAcc+=dt*speed;
+    if(tickAcc>0.5){ tickAcc=0; stepLoadModel(); }
+    if(acc>0.12){ acc=0; updateUI(); }
+  }
+  real.draw(); twin.draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+
+/* ============================================================
+   PYTHON TAB — loads sim_export.json produced by
+   edge_ndt_digital_twin_sim.py (or the bundled sample below).
+   ============================================================ */
+(function(){
+"use strict";
+const SAMPLE_DATA = {"generated_at":"2026-09-22T06:25:36.515274+00:00","sim_seconds_per_mode":240,"n_nodes":8,"n_runs":5,"synthetic":true,"modes":{"normal":{"summary":{"mode":"normal","n_runs":5,"rmse_load":0.064,"rmse_load_std":0.0029,"r2_load":0.7705,"r2_load_std":0.0666,"sla_violation_pct_real":6.814,"sla_violation_pct_real_std":9.9082,"avg_completion_real_ms":765.5,"avg_completion_real_ms_std":448.4038,"avg_completion_twin_ms":770.0,"avg_completion_twin_ms_std":473.6982,"gap_pct":2.246,"gap_pct_std":5.8875,"risk_level":"LOW","tasks_completed_real":526,"tasks_completed_twin":526},"series":{"t":[0.0,3.0,6.0,9.0,12.0,15.0,18.0,21.0,24.0,27.0,30.0,33.0,36.0,39.0,42.0,45.0,48.0,51.0,54.0,57.0,60.0,63.0,66.0,69.0,72.0,75.0,78.0,81.0,84.0,87.0,90.0,93.0,96.0,99.0,102.0,105.0,108.0,111.0,114.0,117.0,120.0,123.0,126.0,129.0,132.0,135.0,138.0,141.0,144.0,147.0,150.0,153.0,156.0,159.0,162.0,165.0,168.0,171.0,174.0,177.0,180.0,183.0,186.0,189.0,192.0,195.0,198.0,201.0,204.0,207.0,210.0,213.0,216.0,219.0,222.0,225.0,228.0,231.0,234.0,237.0],"real_load_mean":[0.2735,0.249,0.2488,0.2978,0.2667,0.2631,0.2856,0.2334,0.2473,0.2722,0.2852,0.2607,0.222,0.2346,0.242,0.2579,0.2722,0.2661,0.2467,0.2676,0.2399,0.2653,0.264,0.2946,0.2895,0.2446,0.248,0.2681,0.2381,0.2557,0.2635,0.2893,0.2293,0.235,0.2344,0.2572,0.2684,0.2795,0.2523,0.2692,0.2442,0.2679,0.268,0.268,0.2281,0.2463,0.2191,0.2645,0.2777,0.2255,0.2413,0.2481,0.2203,0.2471,0.2973,0.2334,0.2321,0.255,0.2537,0.2735,0.2583,0.2686,0.2566,0.2823,0.2511,0.2789,0.2665,0.2726,0.2361,0.3189,0.2478,0.2159,0.2479,0.2573,0.2457,0.2517,0.2427,0.2501,0.2723,0.2424],"twin_load_mean":[0.2661,0.2392,0.2474,0.2882,0.2787,0.3253,0.2878,0.2458,0.264,0.2496,0.2643,0.2825,0.2634,0.2397,0.2354,0.2815,0.2886,0.2733,0.2861,0.2763,0.2554,0.2732,0.2948,0.2798,0.269,0.3101,0.28,0.294,0.2608,0.2589,0.2743,0.3012,0.2407,0.2424,0.2665,0.2899,0.291,0.292,0.2971,0.2935,0.2641,0.3027,0.2624,0.2713,0.2332,0.2632,0.2377,0.2748,0.2685,0.2216,0.2746,0.2594,0.2425,0.2707,0.265,0.2789,0.2195,0.2781,0.2686,0.2607,0.3154,0.2771,0.2609,0.2817,0.2687,0.27,0.27,0.2747,0.2775,0.3039,0.2992,0.256,0.2941,0.2683,0.2614,0.2706,0.2322,0.2675,0.2662,0.2779],"rmse_rolling":[0.0555,0.0665,0.0658,0.0663,0.0653,0.0645,0.066,0.0641,0.0632,0.0662,0.0677,0.0665,0.0703,0.0667,0.0645,0.0698,0.0695,0.072,0.0699,0.0681,0.0667,0.0681,0.0633,0.0674,0.0688,0.0688,0.0681,0.0681,0.0644,0.0642,0.0682,0.0666,0.0638,0.0685,0.0643,0.0658,0.0676,0.0671,0.0691,0.0699,0.0646,0.0638,0.0637,0.0715,0.07,0.066,0.0689,0.0663,0.07,0.0639,0.0665,0.0662,0.0691,0.0697,0.0702,0.0664,0.0691,0.0715,0.0673,0.0666,0.0674,0.065,0.0658,0.0679,0.0625,0.0635,0.0643,0.0627,0.0648,0.0687,0.0701,0.0672,0.0625,0.0625,0.0654,0.0653,0.0672,0.0676,0.0658,0.0651],"r2_rolling":[0.857,0.8264,0.8532,0.836,0.8284,0.7855,0.8291,0.8268,0.7938,0.7453,0.8142,0.818,0.8143,0.8152,0.8497,0.8034,0.8037,0.8025,0.816,0.7879,0.7948,0.7626,0.8168,0.8226,0.8558,0.8328,0.8001,0.8249,0.8631,0.8334,0.8327,0.8508,0.854,0.8068,0.8072,0.7837,0.8325,0.8224,0.8197,0.828,0.8488,0.8299,0.8219,0.8061,0.7934,0.8056,0.7902,0.8161,0.8475,0.8327,0.7877,0.8203,0.8232,0.8453,0.8309,0.8072,0.7907,0.7902,0.8007,0.8293,0.8091,0.812,0.8094,0.8167,0.8503,0.8398,0.8509,0.8184,0.8162,0.8554,0.8258,0.8222,0.8123,0.8468,0.853,0.8455,0.8004,0.8032,0.8067,0.8529],"gap_pct_rolling":[0.0,10.29,-10.71,-10.0,-9.46,12.43,3.89,-23.78,16.78,21.55,33.07,34.45,31.25,17.89,4.04,15.91,17.14,23.06,-4.03,-11.4,-16.35,9.27,9.73,2.67,3.05,45.51,32.2,-43.9,-53.09,-53.26,5.17,33.86,32.78,138.98,62.53,59.77,-8.98,-20.15,14.54,23.78,24.89,21.75,-15.35,-14.85,-7.06,-16.33,-5.94,-7.95,54.28,7.71,-12.96,12.06,19.33,3.03,3.8,-28.94,-26.02,-6.43,-11.83,-6.98,6.72,61.18,80.98,11.82,53.57,0.99,-10.15,-27.62,-20.2,-14.43,22.68,0.0,28.12,29.31,21.56,9.5,64.47,31.64,61.74,12.33]}},"high_churn":{"summary":{"mode":"high_churn","n_runs":5,"rmse_load":0.1007,"rmse_load_std":0.0047,"r2_load":0.3255,"r2_load_std":0.1361,"sla_violation_pct_real":7.824,"sla_violation_pct_real_std":4.6155,"avg_completion_real_ms":904.0,"avg_completion_real_ms_std":590.1538,"avg_completion_twin_ms":785.5,"avg_completion_twin_ms_std":635.827,"gap_pct":33.438,"gap_pct_std":78.8335,"risk_level":"HIGH","tasks_completed_real":525,"tasks_completed_twin":526},"series":{"t":[0.0,3.0,6.0,9.0,12.0,15.0,18.0,21.0,24.0,27.0,30.0,33.0,36.0,39.0,42.0,45.0,48.0,51.0,54.0,57.0,60.0,63.0,66.0,69.0,72.0,75.0,78.0,81.0,84.0,87.0,90.0,93.0,96.0,99.0,102.0,105.0,108.0,111.0,114.0,117.0,120.0,123.0,126.0,129.0,132.0,135.0,138.0,141.0,144.0,147.0,150.0,153.0,156.0,159.0,162.0,165.0,168.0,171.0,174.0,177.0,180.0,183.0,186.0,189.0,192.0,195.0,198.0,201.0,204.0,207.0,210.0,213.0,216.0,219.0,222.0,225.0,228.0,231.0,234.0,237.0],"real_load_mean":[0.2811,0.2595,0.2852,0.2689,0.3256,0.3159,0.2984,0.2919,0.3187,0.2772,0.2879,0.2684,0.2561,0.2509,0.2628,0.2378,0.2199,0.2761,0.2268,0.2372,0.2972,0.2436,0.2256,0.2924,0.2796,0.2408,0.3012,0.2812,0.2574,0.2855,0.2676,0.2597,0.2606,0.2542,0.2681,0.2364,0.2954,0.2766,0.286,0.267,0.2899,0.2784,0.2822,0.2578,0.2877,0.2904,0.2909,0.2982,0.2765,0.2603,0.2601,0.2367,0.2865,0.2494,0.2848,0.2411,0.2745,0.2791,0.2453,0.2861,0.2905,0.2899,0.2403,0.2691,0.2785,0.2664,0.2457,0.2601,0.2768,0.2625,0.2322,0.2594,0.2905,0.2955,0.22,0.2834,0.3149,0.2976,0.3155,0.3105],"twin_load_mean":[0.2854,0.3202,0.272,0.2697,0.3667,0.3595,0.2988,0.3249,0.2828,0.2891,0.3024,0.3485,0.3105,0.2762,0.2842,0.3425,0.3014,0.3005,0.2035,0.2788,0.2963,0.3034,0.2605,0.2839,0.3313,0.2595,0.2966,0.2962,0.3057,0.3685,0.3047,0.3412,0.2797,0.3058,0.2657,0.3138,0.3418,0.2664,0.3097,0.2862,0.3165,0.2719,0.2717,0.3075,0.3671,0.2947,0.3067,0.2263,0.3174,0.2914,0.2573,0.2631,0.3462,0.3043,0.3124,0.2879,0.3161,0.2829,0.2953,0.273,0.3197,0.2588,0.327,0.28,0.3406,0.2817,0.2392,0.2835,0.3411,0.3108,0.2219,0.2943,0.2681,0.295,0.2453,0.3481,0.3225,0.3051,0.2959,0.3273],"rmse_rolling":[0.0957,0.1003,0.1035,0.1004,0.1026,0.1019,0.091,0.1032,0.1022,0.0989,0.1055,0.107,0.1076,0.1001,0.0966,0.1044,0.1022,0.0974,0.0962,0.1077,0.1069,0.1042,0.1028,0.0948,0.0957,0.0965,0.1032,0.1031,0.1015,0.0994,0.1054,0.1016,0.1023,0.1045,0.1045,0.1016,0.1006,0.1002,0.099,0.0981,0.0992,0.1012,0.0999,0.0995,0.1053,0.1035,0.1023,0.0986,0.0971,0.1015,0.0987,0.102,0.1015,0.1114,0.1057,0.0964,0.0936,0.1007,0.1001,0.1076,0.0987,0.1036,0.1057,0.0967,0.1055,0.1138,0.0987,0.0973,0.0996,0.0972,0.1033,0.1094,0.0996,0.1026,0.1113,0.1057,0.1008,0.0983,0.0999,0.1062],"r2_rolling":[0.5383,0.5598,0.3447,0.4919,0.4448,0.448,0.5136,0.4907,0.4637,0.4909,0.4625,0.4312,0.3571,0.5013,0.4107,0.453,0.4991,0.4099,0.3974,0.3957,0.3496,0.2867,0.2718,0.4045,0.2405,0.3941,0.3648,0.473,0.375,0.394,0.3284,0.4766,0.5814,0.4547,0.4255,0.4765,0.4163,0.5268,0.3919,0.3173,0.4648,0.5072,0.438,0.4945,0.4128,0.3622,0.4353,0.5104,0.5099,0.3773,0.3934,0.4079,0.3624,0.3372,0.278,0.3303,0.4788,0.4228,0.3259,0.3458,0.4197,0.3889,0.4164,0.3225,0.3068,0.4075,0.3564,0.3399,0.4274,0.5139,0.4145,0.1522,0.4034,0.4439,0.5606,0.4987,0.5199,0.4472,0.5076,0.5093],"gap_pct_rolling":[0.0,-6.25,4.36,-8.71,-18.58,-24.22,-34.82,-25.45,-8.24,2.45,15.08,85.77,119.82,129.83,175.24,227.88,220.34,174.48,267.98,218.63,166.79,133.09,81.21,277.33,362.3,417.62,415.86,407.73,520.0,420.83,181.22,126.83,121.14,251.34,134.48,121.21,22.18,65.07,64.61,-2.51,5.16,-3.95,194.09,159.72,308.97,334.11,281.97,308.84,272.57,162.65,12.82,7.26,187.05,163.03,257.73,218.29,224.17,251.35,84.91,232.59,126.75,168.8,163.03,217.27,243.88,96.62,106.06,61.13,85.15,32.37,-9.7,-0.44,-7.33,-9.83,54.85,26.62,52.16,53.03,54.83,58.08]}},"low_bandwidth":{"summary":{"mode":"low_bandwidth","n_runs":5,"rmse_load":0.0711,"rmse_load_std":0.0037,"r2_load":0.6632,"r2_load_std":0.0978,"sla_violation_pct_real":8.988,"sla_violation_pct_real_std":5.661,"avg_completion_real_ms":1548.5,"avg_completion_real_ms_std":587.9639,"avg_completion_twin_ms":1254.5,"avg_completion_twin_ms_std":553.2391,"gap_pct":37.2,"gap_pct_std":35.4246,"risk_level":"MEDIUM","tasks_completed_real":523,"tasks_completed_twin":525},"series":{"t":[0.0,3.0,6.0,9.0,12.0,15.0,18.0,21.0,24.0,27.0,30.0,33.0,36.0,39.0,42.0,45.0,48.0,51.0,54.0,57.0,60.0,63.0,66.0,69.0,72.0,75.0,78.0,81.0,84.0,87.0,90.0,93.0,96.0,99.0,102.0,105.0,108.0,111.0,114.0,117.0,120.0,123.0,126.0,129.0,132.0,135.0,138.0,141.0,144.0,147.0,150.0,153.0,156.0,159.0,162.0,165.0,168.0,171.0,174.0,177.0,180.0,183.0,186.0,189.0,192.0,195.0,198.0,201.0,204.0,207.0,210.0,213.0,216.0,219.0,222.0,225.0,228.0,231.0,234.0,237.0],"real_load_mean":[0.3242,0.37,0.3358,0.3531,0.336,0.3398,0.3055,0.3132,0.3399,0.3144,0.317,0.3433,0.3477,0.3089,0.335,0.3496,0.3571,0.3392,0.327,0.3109,0.3612,0.2799,0.336,0.3476,0.3469,0.3424,0.3444,0.3638,0.3751,0.3088,0.364,0.3497,0.3449,0.311,0.3577,0.3289,0.3421,0.3769,0.348,0.3452,0.3854,0.366,0.3476,0.2954,0.3553,0.345,0.3387,0.3274,0.35,0.3533,0.3407,0.3324,0.3295,0.3725,0.3558,0.316,0.3049,0.3922,0.3576,0.3819,0.3394,0.3636,0.3367,0.3162,0.3496,0.3448,0.2948,0.3425,0.3419,0.3338,0.3167,0.3035,0.3324,0.3532,0.3394,0.4051,0.3598,0.3409,0.3162,0.3449],"twin_load_mean":[0.3181,0.3589,0.3094,0.3374,0.3528,0.3201,0.3596,0.3485,0.358,0.3452,0.3398,0.3072,0.3745,0.3314,0.3213,0.3527,0.3312,0.363,0.3613,0.3142,0.3737,0.2777,0.3461,0.3245,0.3351,0.3244,0.3378,0.3362,0.3261,0.2966,0.3931,0.3434,0.3249,0.3069,0.3275,0.3254,0.3488,0.3522,0.3471,0.3625,0.3241,0.3543,0.3389,0.3089,0.3938,0.3371,0.3297,0.3451,0.345,0.3638,0.3296,0.3372,0.3359,0.3705,0.3385,0.3032,0.3058,0.3523,0.3728,0.3377,0.3594,0.3644,0.357,0.3374,0.326,0.3333,0.3019,0.3334,0.3581,0.3013,0.3173,0.3323,0.3297,0.3453,0.3714,0.3976,0.3486,0.3192,0.3379,0.3392],"rmse_rolling":[0.0666,0.0722,0.0767,0.0733,0.0703,0.0762,0.0743,0.0754,0.0707,0.0771,0.0749,0.0729,0.0716,0.0798,0.0772,0.0756,0.0724,0.0719,0.0686,0.0761,0.0724,0.074,0.0826,0.0815,0.078,0.0758,0.0767,0.0789,0.0799,0.0796,0.0749,0.0748,0.0738,0.0761,0.0778,0.0795,0.0739,0.0754,0.0706,0.0823,0.0802,0.0758,0.0717,0.0752,0.0817,0.074,0.0778,0.0769,0.0719,0.0725,0.0676,0.0732,0.0763,0.0746,0.0813,0.0782,0.0776,0.0797,0.0783,0.0668,0.0781,0.0728,0.074,0.0727,0.0799,0.0702,0.0708,0.0762,0.0742,0.0817,0.0786,0.0782,0.0734,0.0761,0.0771,0.0749,0.0775,0.0741,0.0734,0.0769],"r2_rolling":[0.7816,0.7783,0.8011,0.7843,0.7935,0.781,0.7862,0.7865,0.7415,0.7989,0.8298,0.7692,0.8195,0.7882,0.8199,0.8481,0.8173,0.7735,0.8235,0.8139,0.8401,0.7962,0.7993,0.7803,0.7691,0.7692,0.8194,0.8285,0.7965,0.8036,0.8165,0.8256,0.808,0.7963,0.8191,0.8128,0.8047,0.7892,0.8396,0.8154,0.7614,0.7649,0.8025,0.7921,0.8037,0.8068,0.8231,0.813,0.8288,0.7875,0.7901,0.8441,0.8086,0.8167,0.8054,0.7871,0.8259,0.8085,0.7977,0.7834,0.7536,0.8167,0.8087,0.8337,0.8039,0.8358,0.8084,0.7963,0.8068,0.789,0.7927,0.8024,0.8,0.8162,0.8003,0.7802,0.8339,0.7795,0.7836,0.8028],"gap_pct_rolling":[0.0,23.53,136.84,56.72,29.86,19.7,-14.47,-10.03,-17.02,-18.14,-16.82,-8.3,31.24,64.76,108.91,64.76,98.16,75.81,38.2,22.04,60.14,-0.74,-12.13,-7.73,-9.93,-16.39,-43.68,0.3,2.33,-1.71,49.28,44.5,31.43,34.8,18.74,25.81,36.48,41.8,56.71,37.96,44.84,39.9,-15.92,-30.3,-21.31,-20.13,-23.88,-9.44,46.9,44.38,-27.22,-21.36,-11.74,-25.64,-1.01,-1.38,93.64,71.32,48.12,62.14,50.0,-33.73,-4.48,2.12,-2.58,4.36,0.55,69.35,18.64,20.72,19.29,54.4,59.43,75.27,-5.98,-19.55,-5.41,-35.6,-45.58,-38.21]}}}};
+
+let currentData = SAMPLE_DATA;
+let pyMode = "normal";
+
+function fmtNum(v, d){ return (v===null||v===undefined) ? '—' : Number(v).toFixed(d); }
+function fmtStd(v, s, d){
+  if(v===null||v===undefined) return '—';
+  const base = Number(v).toFixed(d);
+  return (s===null||s===undefined) ? base : `${base} <span style="color:var(--muted)">±${Number(s).toFixed(d)}</span>`;
+}
+
+function renderTable(data){
+  const tbody=document.getElementById('metricsTbody');
+  tbody.innerHTML='';
+  const nRuns = data.n_runs ?? (data.modes.normal && data.modes.normal.summary.n_runs) ?? 1;
+  document.querySelectorAll('#nRunsLabel, #nRunsLabel2').forEach(el=>el.textContent=nRuns);
+  document.getElementById('simSecondsLabel').textContent = data.sim_seconds_per_mode ?? '—';
+  ['normal','high_churn','low_bandwidth'].forEach(m=>{
+    const s=data.modes[m] && data.modes[m].summary; if(!s) return;
+    const gapSign = (s.gap_pct!==null && s.gap_pct>=0) ? '+' : '';
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${MODE_LABEL[m]}</td>
+      <td class="mono">${fmtStd(s.rmse_load, s.rmse_load_std, 3)}</td>
+      <td class="mono">${fmtStd(s.r2_load, s.r2_load_std, 3)}</td>
+      <td><span class="badge ${s.risk_level}">${s.risk_level}</span></td>
+      <td class="mono">${gapSign}${fmtStd(s.gap_pct, s.gap_pct_std, 1)}%</td>
+      <td class="mono">${fmtNum(s.sla_violation_pct_real,1)}%</td>
+      <td class="mono">${fmtNum(s.avg_completion_real_ms,0)} ms</td>
+      <td class="mono">${fmtNum(s.avg_completion_twin_ms,0)} ms</td>
+      <td class="mono">${s.tasks_completed_real ?? '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function drawLine(canvas, series, opts){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const pad=8;
+  const allVals=[].concat(...series.map(s=>s.data));
+  let mn=Math.min(...allVals), mx=Math.max(...allVals);
+  if(opts && opts.zeroBase){ mn=Math.min(0,mn); }
+  if(mx-mn<1e-6){ mx=mn+1; }
+  const x=(i,n)=> pad + i/(n-1)*(W-2*pad);
+  const y=v => H-pad - (v-mn)/(mx-mn)*(H-2*pad);
+  // zero line if relevant
+  if(opts && opts.zeroBase && mn<0){
+    ctx.strokeStyle='#7c8aa3'; ctx.globalAlpha=.35; ctx.beginPath();
+    ctx.moveTo(pad,y(0)); ctx.lineTo(W-pad,y(0)); ctx.stroke(); ctx.globalAlpha=1;
+  }
+  series.forEach(s=>{
+    const n=s.data.length; if(n<2) return;
+    ctx.beginPath();
+    s.data.forEach((v,i)=>{ const px=x(i,n), py=y(v); if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); });
+    ctx.strokeStyle=s.color; ctx.lineWidth=2; ctx.stroke();
+  });
+}
+
+function setAxis(minId, maxId, arr, unit){
+  unit = unit || '';
+  if(!arr || arr.length===0){
+    document.getElementById(minId).textContent='—';
+    document.getElementById(maxId).textContent='—';
+    return;
+  }
+  const mn=Math.min(...arr), mx=Math.max(...arr);
+  document.getElementById(minId).textContent = mn.toFixed(2)+unit;
+  document.getElementById(maxId).textContent = mx.toFixed(2)+unit;
+}
+
+function renderCharts(data, mode){
+  const d = data.modes[mode]; if(!d) return;
+  const s = d.series;
+  drawLine(document.getElementById('cvLoad'), [
+    {data:s.real_load_mean, color:'#4fd1c5'},
+    {data:s.twin_load_mean, color:'#f0a860'}
+  ]);
+  const loadAll=[].concat(s.real_load_mean||[], s.twin_load_mean||[]);
+  setAxis('axLoadMin','axLoadMax', loadAll);
+
+  drawLine(document.getElementById('cvRmse'), [{data:s.rmse_rolling, color:'#e2574c'}]);
+  setAxis('axRmseMin','axRmseMax', s.rmse_rolling);
+
+  drawLine(document.getElementById('cvR2'), [{data:s.r2_rolling, color:'#57c46b'}]);
+  setAxis('axR2Min','axR2Max', s.r2_rolling);
+
+  drawLine(document.getElementById('cvGap'), [{data:s.gap_pct_rolling, color:'#b48cf2'}], {zeroBase:true});
+  setAxis('axGapMin','axGapMax', s.gap_pct_rolling, '%');
+}
+
+function renderAll(){
+  renderTable(currentData);
+  renderCharts(currentData, pyMode);
+}
+
+document.getElementById('pyModebtns').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  pyMode=b.dataset.mode;
+  [...document.querySelectorAll('#pyModebtns button')].forEach(x=>x.classList.toggle('active',x===b));
+  renderCharts(currentData, pyMode);
+});
+
+document.getElementById('loadBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload = ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      if(!parsed.modes) throw new Error('missing "modes" key');
+      currentData=parsed;
+      const tag=document.getElementById('srcTag');
+      tag.textContent='loaded: '+file.name; tag.classList.add('live');
+      renderAll();
+    }catch(err){
+      alert('Could not read that file as a sim_export.json: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+renderAll();
+})();
+</script>
+</body>
+</html>

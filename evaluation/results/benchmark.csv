@@ -1,0 +1,13 @@
+method,volatility,mean_act_ms,std_act_ms,sla_violation_rate,n_episodes,tasks_per_episode,avg_solve_time_ms,source
+PPO,normal,85299.04,25643.63,0.956,50,20,,saved trained-policy evaluation
+PPO,high_churn,159032.19,101443.23,0.943,50,20,,saved trained-policy evaluation
+PPO,low_bandwidth,317665.27,139749.18,0.955,50,20,,saved trained-policy evaluation
+Round Robin,normal,312545.08,152004.25,0.867,50,20,,fresh evaluation
+Greedy,normal,282951.52,157521.86,0.878,50,20,,fresh evaluation
+ILP lower bound,normal,341038.52,154245.48,0.9133,20,15,2.56,small-snapshot evaluation
+Round Robin,high_churn,385790.4,192300.22,0.86,50,20,,fresh evaluation
+Greedy,high_churn,415607.4,224918.59,0.889,50,20,,fresh evaluation
+ILP lower bound,high_churn,482638.05,246481.12,0.8933,20,15,2.2,small-snapshot evaluation
+Round Robin,low_bandwidth,878126.63,360723.15,0.871,50,20,,fresh evaluation
+Greedy,low_bandwidth,940301.36,328399.43,0.909,50,20,,fresh evaluation
+ILP lower bound,low_bandwidth,1036195.22,568416.13,0.8967,20,15,2.24,small-snapshot evaluation

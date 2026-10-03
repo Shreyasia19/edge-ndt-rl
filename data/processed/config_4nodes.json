@@ -1,0 +1,63 @@
+{
+  "num_nodes": 4,
+  "nodes": [
+    {
+      "node_id": 0,
+      "compute_capacity_mcps": 55.89,
+      "memory_gb": 3.72
+    },
+    {
+      "node_id": 1,
+      "compute_capacity_mcps": 60.73,
+      "memory_gb": 7.05
+    },
+    {
+      "node_id": 2,
+      "compute_capacity_mcps": 32.51,
+      "memory_gb": 3.53
+    },
+    {
+      "node_id": 3,
+      "compute_capacity_mcps": 90.53,
+      "memory_gb": 5.53
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "target": 1,
+      "bandwidth_mbps": 6.24,
+      "latency_ms": 6.36
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "bandwidth_mbps": 6.29,
+      "latency_ms": 3.84
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "bandwidth_mbps": 11.94,
+      "latency_ms": 0.22
+    },
+    {
+      "source": 1,
+      "target": 2,
+      "bandwidth_mbps": 0.5,
+      "latency_ms": 3.59
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "bandwidth_mbps": 1.9,
+      "latency_ms": 5.79
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "bandwidth_mbps": 2.74,
+      "latency_ms": 1.47
+    }
+  ]
+}

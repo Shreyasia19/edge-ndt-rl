@@ -1,0 +1,127 @@
+{
+  "num_nodes": 6,
+  "nodes": [
+    {
+      "node_id": 0,
+      "compute_capacity_mcps": 86.9,
+      "memory_gb": 3.55
+    },
+    {
+      "node_id": 1,
+      "compute_capacity_mcps": 42.16,
+      "memory_gb": 1.15
+    },
+    {
+      "node_id": 2,
+      "compute_capacity_mcps": 22.58,
+      "memory_gb": 4.22
+    },
+    {
+      "node_id": 3,
+      "compute_capacity_mcps": 5,
+      "memory_gb": 4.75
+    },
+    {
+      "node_id": 4,
+      "compute_capacity_mcps": 20.78,
+      "memory_gb": 3.42
+    },
+    {
+      "node_id": 5,
+      "compute_capacity_mcps": 20.75,
+      "memory_gb": 7.7
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "target": 1,
+      "bandwidth_mbps": 9.89,
+      "latency_ms": 2.36
+    },
+    {
+      "source": 0,
+      "target": 2,
+      "bandwidth_mbps": 16.58,
+      "latency_ms": 1.95
+    },
+    {
+      "source": 0,
+      "target": 3,
+      "bandwidth_mbps": 11.67,
+      "latency_ms": 0.1
+    },
+    {
+      "source": 0,
+      "target": 4,
+      "bandwidth_mbps": 0.5,
+      "latency_ms": 5.49
+    },
+    {
+      "source": 0,
+      "target": 5,
+      "bandwidth_mbps": 15.91,
+      "latency_ms": 5.43
+    },
+    {
+      "source": 1,
+      "target": 2,
+      "bandwidth_mbps": 9.07,
+      "latency_ms": 4.25
+    },
+    {
+      "source": 1,
+      "target": 3,
+      "bandwidth_mbps": 0.5,
+      "latency_ms": 3.2
+    },
+    {
+      "source": 1,
+      "target": 4,
+      "bandwidth_mbps": 6.31,
+      "latency_ms": 7.64
+    },
+    {
+      "source": 1,
+      "target": 5,
+      "bandwidth_mbps": 12.75,
+      "latency_ms": 0.59
+    },
+    {
+      "source": 2,
+      "target": 3,
+      "bandwidth_mbps": 12.59,
+      "latency_ms": 4.04
+    },
+    {
+      "source": 2,
+      "target": 4,
+      "bandwidth_mbps": 4.58,
+      "latency_ms": 6.53
+    },
+    {
+      "source": 2,
+      "target": 5,
+      "bandwidth_mbps": 18.25,
+      "latency_ms": 7.33
+    },
+    {
+      "source": 3,
+      "target": 4,
+      "bandwidth_mbps": 3.29,
+      "latency_ms": 4.23
+    },
+    {
+      "source": 3,
+      "target": 5,
+      "bandwidth_mbps": 12.65,
+      "latency_ms": 7.44
+    },
+    {
+      "source": 4,
+      "target": 5,
+      "bandwidth_mbps": 6.17,
+      "latency_ms": 4.54
+    }
+  ]
+}

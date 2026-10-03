@@ -1,0 +1,7 @@
+label,volatility,twin_mode,mean_act_ms,std_act_ms,sla_violation_rate,mean_reward,n_episodes
+PPO-twin,normal,True,90431.66,35355.67,0.958,-9.4088,50
+PPO-real,normal,False,85299.04,25643.63,0.956,-9.2059,50
+PPO-twin,high_churn,True,144645.26,62577.84,0.928,-11.3224,50
+PPO-real,high_churn,False,159032.19,101443.23,0.943,-11.6235,50
+PPO-twin,low_bandwidth,True,304560.89,102020.86,0.953,-18.0208,50
+PPO-real,low_bandwidth,False,317665.27,139749.18,0.955,-18.0095,50

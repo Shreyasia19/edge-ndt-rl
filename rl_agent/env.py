@@ -64,7 +64,7 @@ class EdgeComputingEnv(gym.Env):
         num_nodes: int = 8,
         lambda_sla: float = 0.3,
         mu_energy: float = 0.1,
-        model_path: str = 'digital_twin/saved_models/twin_best.pt',
+        model_path: str = 'digital_twin/saved_models/gnn_twin_best.pt',
         config_path: str = 'data/processed/config_8nodes.json',
         tasks_path: str = 'data/processed/tasks_train.csv',
         seed: int = 42,
@@ -78,12 +78,17 @@ class EdgeComputingEnv(gym.Env):
         self.lambda_sla = lambda_sla
         self.mu_energy = mu_energy
         self.seed_val = seed
+        
+        # State dimension comes from the actual topology.
+        # This keeps the environment consistent with the digital twin
+        # trained for the current number of nodes.
+        self.real_sim = EdgeNetworkSimulator(
+            config_path=config_path,
+            volatility=volatility,
+            seed=seed,
+        )
 
-        # State dimension: 3*N node features + L link features
-        # N=8 nodes: loads(8) + queues(8) + online(8) = 24
-        # L=28 links: bandwidth(28)
-        # Total = 52
-        self.state_dim = 3 * num_nodes + 28
+        self.state_dim = self.real_sim.state_dim()
 
         # ── Action Space ──────────────────────────────────────
         # Discrete: which node to assign task to (0 to N-1)
@@ -118,12 +123,7 @@ class EdgeComputingEnv(gym.Env):
                 print(f"Warning: twin model not found at {model_path}")
                 print("Using untrained twin — train first!")
 
-        # ── Load Real Simulator ───────────────────────────────
-        self.real_sim = EdgeNetworkSimulator(
-            config_path=config_path,
-            volatility=volatility,
-            seed=seed,
-        )
+        
 
         # ── Load Task Dataset ─────────────────────────────────
         self.tasks_df = pd.read_csv(tasks_path)
